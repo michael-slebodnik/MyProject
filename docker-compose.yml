@@ -1,9 +1,37 @@
 version: '3'
 services:
+  data_ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile_ingestion
+    depends_on:
+      - mongodb
+    environment:
+      MONGODB_HOST: mongodb
+    volumes:
+      - ./data_ingestion.py:/app/data_ingestion.py
+    command: ["python", "data_ingestion.py"]
+
   mongodb:
     image: mongo
     ports:
       - "27017:27017"
+
+  etl_process:
+    build:
+      context: .
+      dockerfile: Dockerfile_etl
+    depends_on:
+      - mongodb
+    environment:
+      MONGODB_HOST: mongodb
+      MYSQL_HOST: mysql
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DB: mydatabase
+    volumes:
+      - ./etl_process.py:/app/etl_process.py
+    command: ["python", "etl_process.py"]
 
   mysql:
     image: mysql
@@ -14,3 +42,4 @@ services:
       MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
+
